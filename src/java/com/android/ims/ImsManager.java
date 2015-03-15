@@ -20,7 +20,9 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
+import android.os.IBinder.DeathRecipient;
 import android.os.Message;
+import android.os.Process;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemProperties;
@@ -103,14 +105,6 @@ public class ImsManager {
      * @hide
      */
     public static final String EXTRA_PHONE_ID = "android:phone_id";
-
-    /**
-     * Part of the ACTION_IMS_SERVICE_UP or _DOWN intents.
-     * A int value; the phoneId corresponding to the IMS service coming up or down.
-     * Internal use only.
-     * @hide
-     */
-    public static final String EXTRA_PHONEID = "android:phoneid";
 
     /**
      * Action for the incoming call intent for the Phone app.
@@ -670,11 +664,19 @@ public class ImsManager {
                     ImsReasonInfo.CODE_LOCAL_IMS_SERVICE_DOWN);
         }
 
+        /* TODO: config_carrier_volte_tty_supported needs to be enabled for
+                 carriers that support it in their respective MCC-MNC config.xml
+                 Example: values-mcc310-mnc230
+                 Uncomment the code below after the change is done. Leaving this
+                 commented so that TTY over VoLTE call is not blocked from apps.
+        */
+        /*
         if (!context.getResources().getBoolean(
                 com.android.internal.R.bool.config_carrier_volte_tty_supported)) {
             setAdvanced4GMode((uiTtyMode == TelecomManager.TTY_MODE_OFF) &&
                     isEnhanced4gLteModeSettingEnabledByUser(context));
         }
+        */
     }
 
     /**
@@ -788,7 +790,7 @@ public class ImsManager {
     /**
      * Used for turning on IMS.if its off already
      */
-    private void turnOnIms() throws ImsException {
+    public void turnOnIms() throws ImsException {
         checkAndThrowExceptionIfServiceUnavailable();
 
         try {
@@ -798,7 +800,7 @@ public class ImsManager {
         }
     }
 
-    private void setAdvanced4GMode(boolean turnOn) throws ImsException {
+    public void setAdvanced4GMode(boolean turnOn) throws ImsException {
         checkAndThrowExceptionIfServiceUnavailable();
 
         ImsConfig config = getConfigInterface();
@@ -825,7 +827,7 @@ public class ImsManager {
      * Used for turning off IMS completely in order to make the device CSFB'ed.
      * Once turned off, all calls will be over CS.
      */
-    private void turnOffIms() throws ImsException {
+    public void turnOffIms() throws ImsException {
         checkAndThrowExceptionIfServiceUnavailable();
 
         try {

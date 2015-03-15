@@ -16,7 +16,6 @@
 
 package com.android.ims.internal;
 
-import android.os.Message;
 import android.os.RemoteException;
 
 import com.android.ims.ImsCallProfile;
@@ -24,6 +23,7 @@ import com.android.ims.ImsConferenceState;
 import com.android.ims.ImsReasonInfo;
 import com.android.ims.ImsStreamMediaProfile;
 import android.telecom.Connection;
+import com.android.ims.ImsSuppServiceNotification;
 
 /**
  * Provides the call initiation/termination, and media exchange between two IMS endpoints.
@@ -369,6 +369,15 @@ public class ImsCallSession {
         }
 
         /**
+         * Called when the session supplementary service is received
+         *
+         * @param session the session object that carries out the IMS session
+         */
+        public void callSessionSuppServiceReceived(ImsCallSession session,
+                ImsSuppServiceNotification suppServiceInfo) {
+        }
+
+        /**
          * Called when TTY mode of remote party changed
          *
          * @param session IMS session object
@@ -469,9 +478,9 @@ public class ImsCallSession {
     }
 
     /**
-     * Gets the remote call profile that this session is associated with
+     * Gets the local call profile that this session is associated with
      *
-     * @return the remote call profile that this session is associated with
+     * @return the local call profile that this session is associated with
      */
     public ImsCallProfile getRemoteCallProfile() {
         if (mClosed) {
@@ -551,32 +560,6 @@ public class ImsCallSession {
             return miSession.getState();
         } catch (RemoteException e) {
             return State.INVALID;
-        }
-    }
-
-    /**
-     * Determines if the {@link ImsCallSession} is currently alive (e.g. not in a terminated or
-     * closed state).
-     *
-     * @return {@code True} if the session is alive.
-     */
-    public boolean isAlive() {
-        if (mClosed) {
-            return false;
-        }
-
-        int state = getState();
-        switch (state) {
-            case State.IDLE:
-            case State.INITIATED:
-            case State.NEGOTIATING:
-            case State.ESTABLISHING:
-            case State.ESTABLISHED:
-            case State.RENEGOTIATING:
-            case State.REESTABLISHING:
-                return true;
-            default:
-                return false;
         }
     }
 
@@ -875,45 +858,13 @@ public class ImsCallSession {
      *
      * @param c the DTMF to send. '0' ~ '9', 'A' ~ 'D', '*', '#' are valid inputs.
      */
-    public void sendDtmf(char c, Message result) {
+    public void sendDtmf(char c) {
         if (mClosed) {
             return;
         }
 
         try {
-            miSession.sendDtmf(c, result);
-        } catch (RemoteException e) {
-        }
-    }
-
-    /**
-     * Starts a DTMF code. According to <a href="http://tools.ietf.org/html/rfc2833">RFC 2833</a>,
-     * event 0 ~ 9 maps to decimal value 0 ~ 9, '*' to 10, '#' to 11, event 'A' ~ 'D' to 12 ~ 15,
-     * and event flash to 16. Currently, event flash is not supported.
-     *
-     * @param c the DTMF to send. '0' ~ '9', 'A' ~ 'D', '*', '#' are valid inputs.
-     */
-    public void startDtmf(char c) {
-        if (mClosed) {
-            return;
-        }
-
-        try {
-            miSession.startDtmf(c);
-        } catch (RemoteException e) {
-        }
-    }
-
-    /**
-     * Stops a DTMF code.
-     */
-    public void stopDtmf() {
-        if (mClosed) {
-            return;
-        }
-
-        try {
-            miSession.stopDtmf();
+            miSession.sendDtmf(c, null);
         } catch (RemoteException e) {
         }
     }
@@ -1265,6 +1216,35 @@ public class ImsCallSession {
                 mListener.callSessionTtyModeReceived(ImsCallSession.this, mode);
             }
         }
+
+        /**
+         * Notifies the result of deflect request.
+         */
+        @Override
+        public void callSessionDeflected(IImsCallSession session) {
+            if (mListener != null) {
+                //TODO: UI specific implementation.
+                //Vendor UI can listen to this callback to take action on success.
+            }
+        }
+
+        @Override
+        public void callSessionDeflectFailed(IImsCallSession session,
+                ImsReasonInfo reasonInfo) {
+            if (mListener != null) {
+                //TODO: UI specific implementation.
+                //Vendor UI can listen to this callback to take action on failure.
+            }
+        }
+
+        @Override
+        public void callSessionSuppServiceReceived(IImsCallSession session,
+                ImsSuppServiceNotification suppServiceInfo ) {
+            if (mListener != null) {
+                mListener.callSessionSuppServiceReceived(ImsCallSession.this, suppServiceInfo);
+            }
+        }
+
     }
 
     /**
