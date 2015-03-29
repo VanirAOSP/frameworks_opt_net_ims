@@ -23,6 +23,9 @@ import android.telephony.Rlog;
 import com.android.ims.ImsConfigListener;
 import com.android.ims.ImsReasonInfo;
 import com.android.ims.internal.IImsConfig;
+
+import java.lang.reflect.Method;
+
 /**
  * Provides APIs to get/set the IMS service feature/capability/parameters.
  * The config items include:
@@ -286,8 +289,12 @@ public class ImsConfig {
     public int getMasterValue(int item) throws ImsException {
         int ret = 0;
         try {
-            ret = miConfig.getMasterValue(item);
-        }  catch (RemoteException e) {
+            Method m = miConfig.getClass().getDeclaredMethod("getMasterValue",
+                    int.class);
+            if (m != null) {
+                ret = (Integer) m.invoke(miConfig, item);
+            }
+        }  catch (Exception e) {
             throw new ImsException("getValue()", e,
                     ImsReasonInfo.CODE_LOCAL_SERVICE_UNAVAILABLE);
         }
@@ -309,8 +316,12 @@ public class ImsConfig {
     public String getMasterStringValue(int item) throws ImsException {
         String ret = "Unknown";
         try {
-            ret = miConfig.getMasterStringValue(item);
-        }  catch (RemoteException e) {
+            Method m = miConfig.getClass().getDeclaredMethod("getMasterStringValue",
+                    int.class);
+            if (m != null) {
+                ret = (String) m.invoke(miConfig, item);
+            }
+        }  catch (Exception e) {
             throw new ImsException("getMasterStringValue()", e,
                     ImsReasonInfo.CODE_LOCAL_SERVICE_UNAVAILABLE);
         }
@@ -331,14 +342,16 @@ public class ImsConfig {
      */
     public int getProvisionedValue(int item) throws ImsException {
         int ret = 0;
-        /*
         try {
-            ret = miConfig.getProvisionedValue(item);
-        }  catch (RemoteException e) {
+            Method m = miConfig.getClass().getDeclaredMethod("getProvisionedValue",
+                    int.class);
+            if (m != null) {
+                ret = (Integer) m.invoke(miConfig, item);
+            }
+        }  catch (Exception e) {
             throw new ImsException("getValue()", e,
                     ImsReasonInfo.CODE_LOCAL_SERVICE_UNAVAILABLE);
         }
-        */
         if (DBG) Rlog.d(TAG, "getProvisionedValue(): item = " + item + ", ret =" + ret);
 
         return ret;
@@ -356,14 +369,16 @@ public class ImsConfig {
      */
     public String getProvisionedStringValue(int item) throws ImsException {
         String ret = "Unknown";
-        /*
         try {
-            ret = miConfig.getProvisionedStringValue(item);
-        }  catch (RemoteException e) {
+            Method m = miConfig.getClass().getDeclaredMethod("getProvisionedStringValue",
+                    int.class);
+            if (m != null) {
+                ret = (String) m.invoke(miConfig, item);
+            }
+        }  catch (Exception e) {
             throw new ImsException("getProvisionedStringValue()", e,
                     ImsReasonInfo.CODE_LOCAL_SERVICE_UNAVAILABLE);
         }
-        */
         if (DBG) Rlog.d(TAG, "getProvisionedStringValue(): item = " + item + ", ret =" + ret);
 
         return ret;
@@ -420,7 +435,7 @@ public class ImsConfig {
         int ret = ImsConfig.OperationStatusConstants.UNKNOWN;
         try {
             ret = miConfig.setProvisionedStringValue(item, value);
-        }  catch (RemoteException e) {
+        } catch (RemoteException e) {
             throw new ImsException("setProvisionedStringValue()", e,
                     ImsReasonInfo.CODE_LOCAL_SERVICE_UNAVAILABLE);
         }
@@ -491,8 +506,12 @@ public class ImsConfig {
      */
     public void getVideoQuality(ImsConfigListener listener) throws ImsException {
         try {
-            miConfig.getVideoQuality(listener);
-        } catch (RemoteException e) {
+            Method m = miConfig.getClass().getDeclaredMethod("getVideoQuality",
+                    ImsConfigListener.class);
+            if (m != null) {
+                m.invoke(miConfig, listener);
+            }
+        } catch (Exception e) {
             throw new ImsException("getVideoQuality()", e,
                     ImsReasonInfo.CODE_LOCAL_SERVICE_UNAVAILABLE);
         }
@@ -509,8 +528,12 @@ public class ImsConfig {
      */
      public void setVideoQuality(int quality, ImsConfigListener listener) throws ImsException {
         try {
-            miConfig.setVideoQuality(quality, listener);
-        } catch (RemoteException e) {
+            Method m = miConfig.getClass().getDeclaredMethod("setVideoQuality",
+                    int.class, ImsConfigListener.class);
+            if (m != null) {
+                m.invoke(miConfig, quality, listener);
+            }
+        } catch (Exception e) {
             throw new ImsException("setVideoQuality()", e,
                     ImsReasonInfo.CODE_LOCAL_SERVICE_UNAVAILABLE);
         }
@@ -525,15 +548,16 @@ public class ImsConfig {
      * @throws ImsException if calling the IMS service results in an error.
      */
     public boolean getVolteProvisioned() throws ImsException {
-        Rlog.d(TAG, "getVolteProvisioned() forced to return true!");
-        /*
         try {
-           return miConfig.getVolteProvisioned();
-        } catch (RemoteException e) {
+            Method m = miConfig.getClass().getDeclaredMethod("getVolteProvisioned");
+            if (m != null) {
+                return (Boolean)m.invoke(miConfig);
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
             throw new ImsException("getVolteProvisioned()", e,
                     ImsReasonInfo.CODE_LOCAL_SERVICE_UNAVAILABLE);
         }
-        */
-        return true;
     }
 }
